@@ -1,0 +1,99 @@
+module half_adr(input a,b,output sum,carry);
+  
+  assign sum = a^b;
+  assign carry =a&b;
+endmodule
+
+module full_adr(input a,b,c,output sum,carry);
+  wire w1,w2,w3;
+  
+  half_adr HA1(.a(a),.b(b),.sum(w1),.carry(w2));
+  half_adr HA2(.a(w1),.b(c),.sum(sum),.carry(w3));
+  
+  assign carry = w2|w3;
+  
+endmodule
+
+
+
+module add_sub(input [3:0]a,b,input mode,output [3:0]sum,output C,V,Z,N);
+  
+  wire [3:0] Bin;
+  wire [4:0] c;
+  
+  assign Bin = b ^ {4{mode}};
+  
+  assign c[0] = mode;
+  
+  //RIPPLE CARRY ADDER.
+
+  full_adr FA0(.a(a[0]),.b(Bin[0]),.c(c[0]),.sum(sum[0]),.carry(c[1]));
+               
+  full_adr FA1(.a(a[1]),.b(Bin[1]),.c(c[1]),.sum(sum[1]),.carry(c[2]));
+                
+  full_adr FA2(.a(a[2]),.b(Bin[2]),.c(c[2]),.sum(sum[2]),.carry(c[3]));
+                 
+  full_adr FA3(.a(a[3]),.b(Bin[3]),.c(c[3]),.sum(sum[3]),.carry(c[4]));
+                
+                
+      assign C = mode ? ~c[4] : c[4];          
+              
+      assign Z = ~|sum;
+  
+      assign N = mode & sum[3]; 
+      assign V = c[4]^c[3];
+  
+endmodule
+
+
+
+module ALU(input [3:0]A,
+           input [3:0]B,
+           input [3:0]op_code,
+           output reg [7:0]result,
+          output C,
+    output V,
+    output Z,
+    output N);
+  
+  wire [3:0] rca_sum; //ripple carry sum.
+ 
+  
+  add_sub  rca1(.a(A),.b(B),
+                .mode(op_code == 4'b0001),
+                .sum(rca_sum),.C(C),.Z(Z),.N(N),.V(V));
+  
+  // comparison returns 1 when opcode == 4'b0001 (sub),and 0 for add.
+               
+  always@(*) begin
+    
+  case(op_code)
+    
+    4'b0000: result = {4'b0000,rca_sum};  //add
+
+    4'b0001: result = {4'b0000,rca_sum};   // sub
+    
+    4'b0010: result = {4'b0000,(A & B)};  //and
+
+    4'b0011: result = {4'b0000, (A | B)}; //or
+
+    4'b0100: result = {4'b0000, (A ^ B)}; //xor
+
+    4'b0101: result = {4'b0000, (~A)}; //not of 1st operand
+    
+    4'b0110: result = {4'b0000, (A << 1)}; //leftshift 
+
+    4'b0111: result = {4'b0000, (A >> 1)}; //right shift
+  
+    4'b1000: result = A * B;   //behavioral multp
+    
+    4'b1001: result = B ? (A / B) : 8'b0;//behavioural division
+    
+      
+    
+       default: result = 8'b00000000; 
+    
+  endcase
+  end
+  
+endmodule
