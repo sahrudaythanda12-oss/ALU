@@ -51,7 +51,8 @@ Flags are only meaningful for **addition and subtraction**; logical, shift, mult
 - Directed Verilog testbench
 - 11 Test Cases
 - All tests passed successfully
-
+- simulations and schematics attached
+  
 
 ## Tools Used
 
