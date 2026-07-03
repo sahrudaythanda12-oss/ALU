@@ -40,7 +40,7 @@ module add_sub(input [3:0]a,b,input mode,output [3:0]sum,output C,V,Z,N);
               
       assign Z = ~|sum;
   
-      assign N = mode & sum[3]; 
+      assign N = sum[3]; 
       assign V = c[4]^c[3];
   
 endmodule
