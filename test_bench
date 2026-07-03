@@ -1,0 +1,116 @@
+`timescale 1ns/1ps
+
+module ALU_tb;
+
+reg  [3:0] A, B;
+reg  [3:0] op_code;
+
+wire [7:0] result;
+  
+  wire C,V,Z,N;
+
+ALU dut(
+    .A(A),
+    .B(B),
+    .op_code(op_code),
+  .result(result),
+   .C(C),
+    .V(V),
+    .Z(Z),
+    .N(N)
+);
+
+integer pass = 0;
+integer fail = 0;
+
+  task apply_check;
+
+input [3:0] tA;
+input [3:0] tB;
+input [3:0] tOP;
+input [7:0] exp_result;
+
+begin
+
+    A = tA;
+    B = tB;
+    op_code = tOP;
+
+    #10;
+
+    if(result == exp_result)
+    begin
+        pass = pass + 1;
+
+        $display("PASS | A=%d B=%d OP=%b RESULT=%d | C=%b V=%b Z=%b N=%b",
+                 A,B,op_code,result,C,V,Z,N);
+    end
+
+    else
+    begin
+        fail = fail + 1;
+
+        $display("FAIL | A=%d B=%d OP=%b",
+                 A,B,op_code);
+
+        $display("Expected RESULT = %d",exp_result);
+
+        $display("Got RESULT = %d | C=%b V=%b Z=%b N=%b",
+                 result,C,V,Z,N);
+    end
+
+end
+
+endtask
+
+
+initial
+begin
+
+    $dumpfile("alu.vcd");
+    $dumpvars(0, ALU_tb);
+
+    
+   
+  apply_check(4'd5,4'd3,4'b0000,8'd8); //add
+
+   
+  apply_check(4'd2,4'd5,4'b0001,8'd13);//sub
+
+    
+  apply_check(4'b1010,4'b1100,4'b0010,8'b00001000);//and
+
+    
+  apply_check(4'b1010,4'b1100,4'b0011,8'b00001110);//or
+
+   
+  apply_check(4'b1010,4'b1100,4'b0100,8'b00000110);//xor
+
+    
+  apply_check(4'b1010,4'b0000,4'b0101,8'b00000101);//not
+
+   
+  apply_check(4'b0011,4'b0000,4'b0110,8'b00000110);//left shift
+
+   
+  apply_check(4'b1000,4'b0000,4'b0111,8'b00000100);//rightshift
+
+    
+  apply_check(4'd15,4'd15,4'b1000,8'd225);//multplication
+
+    
+  apply_check(4'd8,4'd2,4'b1001,8'd4);//division
+
+  
+  apply_check(4'd8,4'd0,4'b1001,8'd0);//divide by zero
+
+    $display("\n");
+    $display("TOTAL TESTS : %0d", pass + fail);
+    $display("PASS        : %0d", pass);
+    $display("FAIL        : %0d", fail);
+    
+    $finish;
+
+end
+  
+endmodule
